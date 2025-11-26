@@ -4,6 +4,8 @@ node ('node-01'){
   }
 
   stage ('Compile-Package'){
+    sh 'echo $PATH' 
+    sh 'mvn -version' 
     sh 'mvn package'
-  }
+   }
 }
