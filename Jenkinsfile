@@ -4,6 +4,6 @@ node ('node-01'){
   }
 
   stage ('Compile-Package'){
-    sh 'mvh package'
+    sh 'mvn package'
   }
 }
