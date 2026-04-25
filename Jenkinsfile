@@ -1,4 +1,4 @@
-node('node-01') {
+node {
     stage('SCM Checkout'){
         deleteDir()
         checkout scm
