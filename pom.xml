@@ -89,24 +89,29 @@
             </plugin>
 
             <!-- ✅ FIX: Jacoco plugin only -->
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+         <plugin>
+             <groupId>org.jacoco</groupId>
+             <artifactId>jacoco-maven-plugin</artifactId>
+             <version>${jacoco.version}</version>
+             <executions>
+         
+                 <execution>
+                     <id>prepare-agent</id>   <!-- ✅ ADD THIS -->
+                     <goals>
+                         <goal>prepare-agent</goal>
+                     </goals>
+                 </execution>
+         
+                 <execution>
+                     <id>report</id>          <!-- ✅ ADD THIS -->
+                     <phase>verify</phase>
+                     <goals>
+                         <goal>report</goal>
+                     </goals>
+                 </execution>
+         
+             </executions>
+         </plugin>
 
         </plugins>
     </build>
