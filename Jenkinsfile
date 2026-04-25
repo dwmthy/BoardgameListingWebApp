@@ -5,6 +5,8 @@ node {
     }
 
     stage('Compile') {
+        sh 'java -version'
+        sh 'echo $JAVA_HOME'
         def mvnHome = tool 'maven-3.8.6'
         sh "${mvnHome}/bin/mvn compile"
     }
