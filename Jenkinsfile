@@ -1,12 +1,38 @@
-node('node-01'){
+node('node-01') {
     stage('SCM Checkout'){
-        git 'https://github.com/dwmthy/BoardgameListingWebApp'
+        deleteDir()
+        checkout scm
     }
 
-    stage('Compile - package'){
-        def mvnHome = tool name: 'maven-3.8.6', type: 'maven'
-        withEnv(["PATH+MAVEN=${mvnHome}/bin"]) {
-            sh 'mvn package'
+    stage('Compile') {
+        def mvnHome = tool 'maven-3.8.6'
+        sh "${mvnHome}/bin/mvn compile"
+    }
+
+
+    stage('Test') {
+        def mvnHome = tool 'maven-3.8.6'
+        sh "${mvnHome}/bin/mvn test"
+    }
+
+    stage('Sonarqube Scan'){
+        withSonarQubeEnv('sonarqube-server') {
+            sh 'mvn sonar:sonar'
+        }
+    }
+    
+    tage('SonarQube Scan') {
+            withSonarQubeEnv('sonarqube-server') {
+                sh 'mvn sonar:sonar'
+            }
+        }
+    
+    stage('Quality Gate') {
+        timeout(time: 2, unit: 'MINUTES') {
+            def qg = waitForQualityGate()
+            if (qg.status != 'OK') {
+                error "Pipeline failed due to Quality Gate: ${qg.status}"
+            }
         }
     }
 }
