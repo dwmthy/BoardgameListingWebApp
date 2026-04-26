@@ -36,4 +36,18 @@ node('jdk11') {
       }
     }
   }
+
+  stage('Package') {
+    withEnv(["JAVA_HOME=${jdk17}", "PATH+JAVA=${jdk17}/bin"]) {
+      sh "${mvnHome}/bin/mvn package"
+    }
+  }
+
+  stage('Push artifact to Nexus Repo') {
+    withCredentials([usernamePassword(credentialsId: "nexus-cred", usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+      sh """curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file target/*.jar \
+        https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/2.0.1/boardgame-2.0.1-${env.BRANCH_NAME}.jar
+      """
+    }
+  }
 }
