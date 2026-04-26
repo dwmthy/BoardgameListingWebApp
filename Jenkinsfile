@@ -52,13 +52,13 @@ node('jdk11') {
 }
 
 node('jdk17'){
-  stage('Push artifact to Nexus Repo') {
+  stage('Deploy artifact to remote vms') {
     withCredentials([usernamePassword(credentialsId: "nexus-cred", usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-      sh "test -f /opt/boardgame.jar  && cp /opt/boardgame.jar /opt/boardgame.jar2.jar || true"
-      sh """curl -v -u ${NEXUS_USER}:${NEXUS_PASS} -o /opt/boardgame.jar \
+      sh "test -f /home/jenkins/deploy/boardgame.jar  && cp /home/jenkins/deploy/boardgame.jar /home/jenkins/deploy/boardgame.jar2.jar || true"
+      sh """curl -v -u ${NEXUS_USER}:${NEXUS_PASS} -o /home/jenkins/deploy/boardgame.jar \
         https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/2.0.1/boardgame-2.0.1-${env.BRANCH_NAME}.jar
       """
-      sh "java -jar /opt/boardgame.jar &"   
+      sh "java -jar /home/jenkins/deploy/boardgame.jar &"   
     }
   }
 }
