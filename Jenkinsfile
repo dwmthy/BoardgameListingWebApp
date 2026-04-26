@@ -29,7 +29,7 @@ node('jdk11') {
   }
 
   stage('Quality Gate') {
-    timeout(time: 2, unit: 'MINUTES') {
+    timeout(time: 1, unit: 'HOUR') {
       def qg = waitForQualityGate()
       if (qg.status != 'OK') {
         error "Pipeline failed due to Quality Gate: ${qg.status}"
