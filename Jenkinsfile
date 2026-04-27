@@ -152,7 +152,6 @@ node('jdk11') {
                     sh "ssh -o StrictHostKeyChecking=no jenkins@172.31.6.101 'test -f /home/jenkins/deploy/boardgame.jar  && cp /home/jenkins/deploy/boardgame.jar /home/jenkins/deploy/boardgame.jar2.jar || true'"
                     sh "ssh jenkins@172.31.6.101 'curl -v -u ${NEXUS_USER}:${NEXUS_PASS} -o /home/jenkins/deploy/boardgame.jar \
                     https://nexus.duydinh.online/repository/maven-releases/com/duydinh/app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}.jar'"
-                    sh "ssh jenkins@172.31.6.101 'pkill -f boardgame.jar || true && sleep 3'"
                     sh "ssh jenkins@172.31.6.101 'nohup java -jar /home/jenkins/deploy/boardgame.jar > /home/jenkins/deploy/app.log 2>&1 &'"                     
                     }
                 }
@@ -172,11 +171,23 @@ node('jdk11') {
                     sh "ssh -o StrictHostKeyChecking=no jenkins@172.31.6.101 'test -f /home/jenkins/deploy/boardgame.jar  && cp /home/jenkins/deploy/boardgame.jar /home/jenkins/deploy/boardgame.jar2.jar || true'"
                     sh "ssh jenkins@172.31.6.101 'curl -v -u ${NEXUS_USER}:${NEXUS_PASS} -o /home/jenkins/deploy/boardgame.jar \
                     https://nexus.duydinh.online/repository/maven-releases/com/duydinh/app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}-${GIT_HASH}.jar'"
-                    sh "ssh jenkins@172.31.6.101 'pkill -f boardgame.jar || true && sleep 3'"
                     sh "ssh jenkins@172.31.6.101 'nohup java -jar /home/jenkins/deploy/boardgame.jar > /home/jenkins/deploy/app.log 2>&1 &'" 
                     }
                 }
             }          
+        }
+        
+        stage('Health Check') {
+            sleep 30
+            retry(3) {
+            def r = httpRequest(
+                url: "http://localhost:8080",
+                validResponseCodes: '200:399',
+                timeout: 10
+            )
+            echo "Health status: ${r.status}"
+            sleep 5
+            }
         }
         
     } else {
