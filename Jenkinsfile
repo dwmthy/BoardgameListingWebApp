@@ -4,6 +4,7 @@ node('jdk11') {
     def jdk17   = tool name: 'jdk-17', type: 'hudson.model.JDK'
     def baseVersion   // read from pom.xml
     def GIT_HASH 
+    def safeBranch
 
     stage('SCM Checkout') {
         deleteDir()
@@ -16,6 +17,7 @@ node('jdk11') {
         // baseVersion = "1.2.0"
 
         GIT_HASH = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        safeBranch = env.BRANCH_NAME.replaceAll('[^a-zA-Z0-9._-]', '-')
     }
 
     if (env.CHANGE_ID) {
@@ -57,6 +59,11 @@ node('jdk11') {
 
     } else if (env.BRANCH_NAME.startsWith('dev')) {
         
+        if (env.CHANGE_ID) {
+            echo "Skipping dev branch build — already running as PR-${env.CHANGE_ID}"
+            return
+        }
+    
         stage('Compile') {
             withEnv(["JAVA_HOME=${jdk17}", "PATH+JAVA=${jdk17}/bin"]) {
                 sh "${mvnHome}/bin/mvn -U clean compile"
@@ -133,7 +140,7 @@ node('jdk11') {
             stage('Push artifact to Nexus Repo') {
                 withCredentials([usernamePassword(credentialsId: "nexus-cred", usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                 sh """curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file target/*.jar \
-                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${env.BRANCH_NAME}.jar
+                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}.jar
                 """
                 }
             }
@@ -143,7 +150,7 @@ node('jdk11') {
                     sshagent(['jenkins-user']){
                     sh "ssh -o StrictHostKeyChecking=no jenkins@172.31.6.101 'test -f /home/jenkins/deploy/boardgame.jar  && cp /home/jenkins/deploy/boardgame.jar /home/jenkins/deploy/boardgame.jar2.jar || true'"
                     sh "ssh jenkins@172.31.6.101 'curl -v -u ${NEXUS_USER}:${NEXUS_PASS} -o /home/jenkins/deploy/boardgame.jar \
-                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${env.BRANCH_NAME}.jar'"
+                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}.jar'"
                     sh "ssh jenkins@172.31.6.101 'java -jar /home/jenkins/deploy/boardgame.jar &'"   
                     }
                 }
@@ -152,7 +159,7 @@ node('jdk11') {
             stage('Push artifact to Nexus Repo') {
                 withCredentials([usernamePassword(credentialsId: "nexus-cred", usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                 sh """curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file target/*.jar \
-                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${env.BRANCH_NAME}-${GIT_HASH}.jar
+                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}-${GIT_HASH}.jar
                 """
                 }
             }
@@ -162,7 +169,7 @@ node('jdk11') {
                     sshagent(['jenkins-user']){
                     sh "ssh -o StrictHostKeyChecking=no jenkins@172.31.6.101 'test -f /home/jenkins/deploy/boardgame.jar  && cp /home/jenkins/deploy/boardgame.jar /home/jenkins/deploy/boardgame.jar2.jar || true'"
                     sh "ssh jenkins@172.31.6.101 'curl -v -u ${NEXUS_USER}:${NEXUS_PASS} -o /home/jenkins/deploy/boardgame.jar \
-                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${env.BRANCH_NAME}-${GIT_HASH}.jar'"
+                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}-${GIT_HASH}.jar'"
                     sh "ssh jenkins@172.31.6.101 'pkill -f boardgame.jar || true'"
                     sh "ssh jenkins@172.31.6.101 'java -jar /home/jenkins/deploy/boardgame.jar &'"   
                     }
@@ -173,14 +180,14 @@ node('jdk11') {
     
         
     } else {
-      echo "No pipeline configured for branch: ${env.BRANCH_NAME}"
+      echo "No pipeline configured for branch: ${safeBranch}"
     }
   }
   catch (err) {
     stage('Noti fail'){
         mail to: "duydeptrai2004tv@gmail.com",
         subject: "${JOB_NAME} - Build #${BUILD_NUMBER} - FAILURE!",
-        body: "Failure log: ${err.stageLog}. Please check the console output at ${BUILD_URL} for details."
+        body: "Error: ${err.getMessage()}. Please check the console output at ${BUILD_URL} for details."
     }
     throw err
   }
