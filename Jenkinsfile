@@ -140,7 +140,7 @@ node('jdk11') {
             stage('Push artifact to Nexus Repo') {
                 withCredentials([usernamePassword(credentialsId: "nexus-cred", usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                 sh """curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file target/*.jar \
-                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}.jar
+                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${safeBranch}.jar
                 """
                 }
             }
@@ -150,7 +150,7 @@ node('jdk11') {
                     sshagent(['jenkins-user']){
                     sh "ssh -o StrictHostKeyChecking=no jenkins@172.31.6.101 'test -f /home/jenkins/deploy/boardgame.jar  && cp /home/jenkins/deploy/boardgame.jar /home/jenkins/deploy/boardgame.jar2.jar || true'"
                     sh "ssh jenkins@172.31.6.101 'curl -v -u ${NEXUS_USER}:${NEXUS_PASS} -o /home/jenkins/deploy/boardgame.jar \
-                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}.jar'"
+                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${safeBranch}.jar'"
                     sh "ssh jenkins@172.31.6.101 'java -jar /home/jenkins/deploy/boardgame.jar &'"   
                     }
                 }
@@ -159,7 +159,7 @@ node('jdk11') {
             stage('Push artifact to Nexus Repo') {
                 withCredentials([usernamePassword(credentialsId: "nexus-cred", usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                 sh """curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file target/*.jar \
-                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}-${GIT_HASH}.jar
+                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${safeBranch}-${GIT_HASH}.jar
                 """
                 }
             }
@@ -169,15 +169,13 @@ node('jdk11') {
                     sshagent(['jenkins-user']){
                     sh "ssh -o StrictHostKeyChecking=no jenkins@172.31.6.101 'test -f /home/jenkins/deploy/boardgame.jar  && cp /home/jenkins/deploy/boardgame.jar /home/jenkins/deploy/boardgame.jar2.jar || true'"
                     sh "ssh jenkins@172.31.6.101 'curl -v -u ${NEXUS_USER}:${NEXUS_PASS} -o /home/jenkins/deploy/boardgame.jar \
-                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}-${GIT_HASH}.jar'"
+                    https://nexus.duydinh.online/repository/maven-releases/com.duydinh.app/boardgame/${baseVersion}/boardgame-${safeBranch}-${GIT_HASH}.jar'"
                     sh "ssh jenkins@172.31.6.101 'pkill -f boardgame.jar || true'"
                     sh "ssh jenkins@172.31.6.101 'java -jar /home/jenkins/deploy/boardgame.jar &'"   
                     }
                 }
             }          
         }
-
-    
         
     } else {
       echo "No pipeline configured for branch: ${safeBranch}"
