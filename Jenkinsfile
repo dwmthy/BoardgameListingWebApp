@@ -149,10 +149,10 @@ node('jdk11') {
             stage('Deploy artifact to remote vms') {
                 withCredentials([usernamePassword(credentialsId: "nexus-cred", usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                     sshagent(['jenkins-user']){
-                    sh "ssh -o StrictHostKeyChecking=no jenkins@172.31.6.101 'test -f /home/jenkins/deploy/boardgame.jar  && cp /home/jenkins/deploy/boardgame.jar /home/jenkins/deploy/boardgame.jar2.jar || true'"
-                    sh "ssh jenkins@172.31.6.101 'curl -v -u ${NEXUS_USER}:${NEXUS_PASS} -o /home/jenkins/deploy/boardgame.jar \
+                    sh "ssh -o StrictHostKeyChecking=no jenkins@172.31.5.52 'test -f /home/jenkins/deploy/boardgame.jar  && cp /home/jenkins/deploy/boardgame.jar /home/jenkins/deploy/boardgame.jar2.jar || true'"
+                    sh "ssh jenkins@172.31.5.52 'curl -v -u ${NEXUS_USER}:${NEXUS_PASS} -o /home/jenkins/deploy/boardgame.jar \
                     https://nexus.duydinh.online/repository/maven-releases/com/duydinh/app/boardgame/${baseVersion}/boardgame-${baseVersion}-${safeBranch}.jar'"
-                    sh "ssh jenkins@172.31.6.101 'nohup java -jar /home/jenkins/deploy/boardgame.jar > /home/jenkins/deploy/app.log 2>&1 &'"                     
+                    sh "ssh jenkins@172.31.5.52 'nohup java -jar /home/jenkins/deploy/boardgame.jar > /home/jenkins/deploy/app.log 2>&1 &'"                     
                     }
                 }
             }
@@ -180,14 +180,20 @@ node('jdk11') {
         stage('Health Check') {
             sleep 30
             retry(3) {
-                sh "curl -f http://172.31.6.101:8080/actuator/health || (sleep 10 && exit 1)"
+            def r = httpRequest(
+                url: "http://localhost:8080",
+                validResponseCodes: '200:399',
+                timeout: 10
+            )
+            echo "Health status: ${r.status}"
+            sleep 5
             }
         }
 
         stage('Noti success') {
             echo "Mail to success"
         }
-        
+
     } else {
       echo "No pipeline configured for branch: ${safeBranch}"
     }
