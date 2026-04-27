@@ -3,7 +3,7 @@ node('jdk11') {
     def mvnHome = tool 'maven-3.8.6'
     def jdk17   = tool name: 'jdk-17', type: 'hudson.model.JDK'
 
-    if(env.BRANCH_NAME.startwith('dev')) {
+    if(env.BRANCH_NAME.startsWith('dev')) {
         
         stage('SCM Checkout') {
             deleteDir()
@@ -45,7 +45,7 @@ node('jdk11') {
             body: "Check console output at ${BUILD_URL} to view the results. "
         }
         
-    } else if (env.BRANCH_NAME === 'release' || env.BRANCH_NAME.startwith('uat')) {
+    } else if (env.BRANCH_NAME == 'release' || env.BRANCH_NAME.startsWith('uat')) {
         stage('SCM Checkout') {
             deleteDir()
             checkout scm
@@ -116,7 +116,8 @@ node('jdk11') {
         body: "Failure log: ${err.stageLog}. Please check the console output at ${BUILD_URL} for details."
     }
   }
-
 }
+
+  
 
 
