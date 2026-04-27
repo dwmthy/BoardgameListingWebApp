@@ -180,14 +180,12 @@ node('jdk11') {
         stage('Health Check') {
             sleep 30
             retry(3) {
-            def r = httpRequest(
-                url: "http://localhost:8080",
-                validResponseCodes: '200:399',
-                timeout: 10
-            )
-            echo "Health status: ${r.status}"
-            sleep 5
+                sh "curl -f http://172.31.6.101:8080/actuator/health || (sleep 10 && exit 1)"
             }
+        }
+
+        stage('Noti success') {
+            echo "Mail to success"
         }
         
     } else {
