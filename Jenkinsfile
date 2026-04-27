@@ -178,7 +178,7 @@ node('jdk11') {
         }
         
         stage('Health Check') {
-            sleep 30
+            sleep 60
             retry(3) {
             def r = httpRequest(
                 url: "http://localhost:8080",
